@@ -48,7 +48,7 @@ app.delete("/users/:id", (req, res) => {
   res.status(204).send();
 });
 
-// Only start the server if this file is run directly
+
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
