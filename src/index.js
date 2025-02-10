@@ -1,26 +1,59 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
 
-// Middleware to parse JSON bodies
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
 
-// **************************************************************
-// Put your implementation here
-// If necessary to add imports, please do so in the section above
+// In-memory user storage
+let users = [];
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+// Routes
+app.post("/users", (req, res) => {
+  const { name, email } = req.body;
+  if (!name || !email) {
+    return res.status(400).json({ message: "Name and email are required" });
+  }
+  const newUser = { id: uuidv4(), name, email };
+  users.push(newUser);
+  res.status(201).json(newUser);
 });
 
-// Do not touch the code below this comment
-// **************************************************************
+app.get("/users/:id", (req, res) => {
+  const user = users.find((u) => u.id === req.params.id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+  res.json(user);
+});
 
-// Start the server (only if not in test mode)
-if (process.env.NODE_ENV !== 'test') {
-    app.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
-    });
+app.put("/users/:id", (req, res) => {
+  const user = users.find((u) => u.id === req.params.id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const { name, email } = req.body;
+  if (!name || !email) {
+    return res.status(400).json({ message: "Name and email are required" });
+  }
+
+  user.name = name;
+  user.email = email;
+  res.json(user);
+});
+
+app.delete("/users/:id", (req, res) => {
+  const index = users.findIndex((u) => u.id === req.params.id);
+  if (index === -1) return res.status(404).json({ message: "User not found" });
+
+  users.splice(index, 1);
+  res.status(204).send();
+});
+
+// Only start the server if this file is run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 }
 
-module.exports = app; // Export the app for testing
+// Export app for testing
+module.exports = app;
